@@ -133,20 +133,5 @@ print_msg("SAVED: $saved", "green");
 print_msg("EXISTS: $exists", "green");
 print_msg("ERRORS: $download_errors", "green");
 print_msg("TOTAL: $total", "green");
-function fa_parse($html) 
-{
-	preg_match_all("/\<a\ href\=\"\/view\/([0-9]{4,10})\/\"/", $html, $links);
-	return $links[1];
-}
-
-function fa_parse_page($html)
-{
-	$out = array();
-	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
-	@$out['name'] = $out['name'][1];
-	preg_match("/href=\"\/\/(.*?)\"/", $html, $out['link']);
-	$out['link'] = $out['link'][1];
-	return $out;	
-}
 
 ?>
