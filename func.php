@@ -77,4 +77,19 @@ function print_msg($text, $color)
 	}
 	return true;
 }
+function fa_parse($html) 
+{
+	preg_match_all("/\<a\ href\=\"\/view\/([0-9]{4,10})\/\"/", $html, $links);
+	return $links[1];
+}
+
+function fa_parse_page($html)
+{
+	$out = array();
+	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
+	@$out['name'] = $out['name'][1];
+	preg_match("/href=\"\/\/(.*?)\"/", $html, $out['link']);
+	$out['link'] = $out['link'][1];
+	return $out;	
+}
 ?>
