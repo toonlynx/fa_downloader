@@ -24,7 +24,9 @@ function curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode, $hea
 	curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0); //if debugging 1
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+//	curl_setopt($ch, CURLOPT_PROXY, "127.0.0.1:1080");
 	curl_setopt($ch, CURLOPT_URL, "$url");
+//	curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 	curl_setopt($ch, CURLOPT_REFERER, $referer);
@@ -76,20 +78,5 @@ function print_msg($text, $color)
 		break;
 	}
 	return true;
-}
-function fa_parse($html) 
-{
-	preg_match_all("/\<a\ href\=\"\/view\/([0-9]{4,10})\/\"/", $html, $links);
-	return $links[1];
-}
-
-function fa_parse_page($html)
-{
-	$out = array();
-	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
-	@$out['name'] = $out['name'][1];
-	preg_match("/href=\"\/\/(.*?)\"/", $html, $out['link']);
-	$out['link'] = $out['link'][1];
-	return $out;	
 }
 ?>
