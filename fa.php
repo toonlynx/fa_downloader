@@ -77,8 +77,6 @@ switch($fa_mode)
 	
 	case "gallery":
 	case "default":
-echo "lol";
-
 		print_msg("Mode 'gallery' selected.", "blue");	
 		$fa_out = '';
 
@@ -88,7 +86,6 @@ echo "lol";
 			print_msg("Get page $i...", "blue");	
 			$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
 			$fa_out .= $out['html'];
-	echo $url; 
 			if(strpos($out['html'], "There are no submissions to list") !== FALSE)
 			{
 				print_msg("Ok, $i pages given. Downloading.", "blue");	
