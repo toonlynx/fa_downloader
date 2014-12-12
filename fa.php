@@ -26,7 +26,7 @@ $fa_mode = $argv[2];
 @$max_pages = $argv[3];
 $post = false;
 $timeout = 20;
-$referer = "http://www.furaffinity.net/";
+$referer = "https://www.furaffinity.net/";
 $cookie_set = false;
 $mode = false;
 if(!isset($max_pages)) 
@@ -38,15 +38,19 @@ elseif($max_pages == 0)
 	$max_pages = 100;
 }
 $download_errors = $exists = $saved = 0;
+$url = "https://www.furaffinity.net/";
+$mode = false;
+$cookie_set = true;
+$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode, true);
 $ua = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)';
-if(!is_file("cookie.txt"))
+if(!is_file("cookie.txt") || strpos($out['html'], "Log in") !== FALSE)
 {
 	$url = "https://www.furaffinity.net/login/";
 	$post = "action=login&retard_protection=1&name=$user&pass=$pass&login=Login+to%C2%A0FurAffinity";
 	$mode = true;
 	$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode, true);
 	$mode = false;
-	if(strpos($out['html'], "Location: http://fur")  !== FALSE || strpos($out['html'], "logout-link") !== FALSE)
+	if(strpos($out['html'], "Location: https://fur")  !== FALSE || strpos($out['html'], "logout-link") !== FALSE)
 	{
 		print_msg("Login successful!", "green");	
 	}
@@ -86,6 +90,12 @@ switch($fa_mode)
 			print_msg("Get page $i...", "blue");	
 			$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
 			$fa_out .= $out['html'];
+			if(strpos($out['html'], "Log in") !== FALSE)
+			{
+				unlink("cookie.txt");
+				print_msg("Error! Please restart script to relogin!", "red");
+				break;
+			}
 			if(strpos($out['html'], "There are no submissions to list") !== FALSE)
 			{
 				print_msg("Ok, $i pages given. Downloading.", "blue");	
@@ -97,10 +107,10 @@ switch($fa_mode)
 		if(!is_dir("out/$fa_user")) mkdir("out/$fa_user", 0777);
 		foreach($links as $link)
 		{
-			$url = "http://www.furaffinity.net/view/$link/";
+			$url = "https://www.furaffinity.net/view/$link/";
 			$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
 			$img = fa_parse_page($out['html']);
-			$url = "http://".$img['link'];
+			$url = "https://".$img['link'];
 			$ext = explode("/", $url);
 			$file_name = end($ext);
 			//$file_name = str_replace(" ", "_", $img['name']);
