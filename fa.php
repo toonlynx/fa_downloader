@@ -36,12 +36,12 @@ if(is_numeric($fa_mode)) {
 }
 if(@strlen($link) < 2 || !isset($link)) {
 
-	print_msg("Usage: ".basename(__FILE__)." <link to profile> <mode> <max pages count(default 10, 0=10000)>", "green");
+	print_msg("Usage: ".basename(__FILE__)." <link to profile> <mode> <max pages count(default 50, 0=10000)>", "green");
 	exit(1);
 }
 if(!isset($max_pages)) 
 {
-	$max_pages = 10;
+	$max_pages = 50;
 }
 elseif($max_pages == 0) 
 {
