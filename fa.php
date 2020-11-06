@@ -19,11 +19,13 @@
  *
  */
 include "func.php";
+$cache_time = 36000; //cache time
 $user = "123"; //username
 $pass = "123"; //password
 @$link = strtolower($argv[1]);
 @$fa_mode = $argv[2];
 @$max_pages = $argv[3];
+@$tags_var = $argv[4];
 $post = false;
 $timeout = 20;
 $referer = "https://www.furaffinity.net/";
@@ -31,12 +33,19 @@ $cookie_set = false;
 $mode = false;
 $i = 0;
 $ua = 'Mozilla/5.0 (X11; Linux x86_64; rv:82.0) Gecko/20100101 Firefox/82.0';
+$cache_files = @glob("cache/*");
+foreach($cache_files as $cache_file){
+	if(time() > @filemtime("$cache_file")+$cache_time) {
+			unlink("$cache_file");
+			print_msg("Deleted cache file: $cache_file", "green");
+	}
+}
 if(is_numeric($fa_mode)) {
 	$max_pages = $fa_mode;
 }
 if(@strlen($link) < 2 || !isset($link)) {
 
-	print_msg("Usage: ".basename(__FILE__)." <link to profile or username> <mode> <max pages count(default 50, 0=10000)>", "green");
+	print_msg("Usage: ".basename(__FILE__)." <link to gallery or username> <mode> <max pages count(default 50, 0=10000)> <tags(delimiter is comma)>", "green");
 	exit(1);
 }
 if(strstr($link, "https://www.furaffinity.net/gallery/") == FALSE) {
@@ -57,6 +66,18 @@ $url = "https://www.furaffinity.net/";
 $mode = false;
 $cookie_set = true;
 $out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode, true);
+if(strlen($tags_var) > 2) {
+	if(strstr($tags_var, ",")) {
+		$tags = explode(",", $tags_var);
+	}
+	else {
+		$tags = array();
+		$tags[0] = $tags_var; 
+	}
+}
+else {
+	$tags = false;
+}
 if(!is_file("cookie.txt") )
 // || strpos($out['html'], "Log In") !== FALSE)
 {
@@ -103,7 +124,7 @@ switch($fa_mode)
 		for($i=1; $i<$max_pages; $i++)
 		{
 			$url = $link."/$i/";
-			print_msg("Get page $i...", "blue");	
+			print_msg("Get page $i...", "blue");
 			$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
 			$fa_out .= $out['html'];
 			if(strpos($out['html'], "Log in") !== FALSE)
@@ -136,6 +157,9 @@ switch($fa_mode)
 		$fa_user = str_replace(array("/gallery/", "/", "https:","www.furaffinity.net"), "", $link);
 		//echo $fa_user;
 		if(!is_dir("out/$fa_user") && @strlen($fa_user) > 3) mkdir("out/$fa_user", 0777);
+		if(!is_dir("cache")) {
+				mkdir("cache", 0777);
+			}
 		//echo var_dump($links);
 		//die();
 		$cnt = count($links);
@@ -144,11 +168,21 @@ switch($fa_mode)
 		{
 			$i++;
 			$url = "https://www.furaffinity.net/view/$link/";
-			$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
-			$img = fa_parse_page($out['html']);
+			if(!is_file("cache/$link")) {
+				$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
+				file_put_contents("cache/$link", $out['html']);
+			}
+			else {
+				$out["html"] = file_get_contents("cache/$link");
+			}
+			$img = fa_parse_page($out['html'], $tags);
 			$url = "https://".$img['link'];
 			$ext = explode("/", $url);
 			$file_name = end($ext);
+			if($img["tag"] == false && $tags != false) {
+				print_msg("Tag(s) not found, skipping image $file_name! ($i/$cnt)", "blue");
+				continue;
+			}
 			//$file_name = str_replace(" ", "_", $img['name']);
 			if(!is_file("out/$fa_user/$file_name"))
 			{

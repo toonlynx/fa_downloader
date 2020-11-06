@@ -85,9 +85,21 @@ function fa_parse($html)
 	return $links[1];
 }
 // \<u\>\<a href\=\"\/view\/([0-9]{4,10})/\"
-function fa_parse_page($html)
+function fa_parse_page($html, $tags=false)
 {
 	$out = array();
+	$out["tag"] = true;
+	if($tags != false) {
+		if(count($tags) > 1)	{
+			$str = implode("|", $tags);
+		}
+		else {
+			$str = $tags[0];
+		}
+		if(!preg_match("#/search/\@keywords ($str)#", $html, $out['name'])){
+			$out["tag"] = false;
+		}
+	}
 	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
 	@$out['name'] = $out['name'][1];
 	preg_match("#\<div class\=\"download\"\>\<a href\=\"\/\/(.*?)\"#", $html, $out['link']);
