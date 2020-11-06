@@ -1,6 +1,6 @@
 <?php
 /*  This is part of FA downloader
- *  (c) Copyright 2013 ToonLynx <toonlynx@gmail.com>
+ *  (c) Copyright 2013-2020 ToonLynx <toonlynx@gmail.com>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -78,5 +78,20 @@ function print_msg($text, $color)
 		break;
 	}
 	return true;
+}
+function fa_parse($html) 
+{
+	preg_match_all("#\<u\>\<a href\=\"\/view\/([0-9]{4,10})/#", $html, $links);
+	return $links[1];
+}
+// \<u\>\<a href\=\"\/view\/([0-9]{4,10})/\"
+function fa_parse_page($html)
+{
+	$out = array();
+	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
+	@$out['name'] = $out['name'][1];
+	preg_match("#\<div class\=\"download\"\>\<a href\=\"\/\/(.*?)\"#", $html, $out['link']);
+	$out['link'] = $out['link'][1];
+	return $out;	
 }
 ?>

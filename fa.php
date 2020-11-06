@@ -1,6 +1,6 @@
 <?php
 /*  This is part of FA downloader
- *  (c) Copyright 2013 ToonLynx <toonlynx@gmail.com>
+ *  (c) Copyright 2013-2020 ToonLynx <toonlynx@gmail.com>
  *
  * This source code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Public License as published 
@@ -36,8 +36,13 @@ if(is_numeric($fa_mode)) {
 }
 if(@strlen($link) < 2 || !isset($link)) {
 
-	print_msg("Usage: ".basename(__FILE__)." <link to profile> <mode> <max pages count(default 50, 0=10000)>", "green");
+	print_msg("Usage: ".basename(__FILE__)." <link to profile or username> <mode> <max pages count(default 50, 0=10000)>", "green");
 	exit(1);
+}
+if(strstr($link, "https://www.furaffinity.net/gallery/") == FALSE) {
+	$oldlink = $link;
+	$link = "https://www.furaffinity.net/gallery/".trim($link);
+	print_msg("Create URL: $oldlink => $link", "green");
 }
 if(!isset($max_pages)) 
 {
@@ -175,20 +180,5 @@ print_msg("SAVED: $saved", "green");
 print_msg("EXISTS: $exists", "green");
 print_msg("ERRORS: $download_errors", "green");
 print_msg("TOTAL: $total", "green");
-function fa_parse($html) 
-{
-	preg_match_all("#\<u\>\<a href\=\"\/view\/([0-9]{4,10})/#", $html, $links);
-	return $links[1];
-}
-// \<u\>\<a href\=\"\/view\/([0-9]{4,10})/\"
-function fa_parse_page($html)
-{
-	$out = array();
-	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
-	@$out['name'] = $out['name'][1];
-	preg_match("#\<div class\=\"download\"\>\<a href\=\"\/\/(.*?)\"#", $html, $out['link']);
-	$out['link'] = $out['link'][1];
-	return $out;	
-}
 
 ?>
