@@ -23,5 +23,6 @@ Time 2147483641 = Tue Jan 19 06:14:01 AM MSK 2038
 This mean, cookie be valid until Jan 2038.
 
 Usage:
-
+```
 php fa.php <link to gallery or username> <mode> <max pages count(default 50, 0=10000)> <tags(delimiter is comma)>
+```
