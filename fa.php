@@ -20,7 +20,7 @@
  */
 include "func.php";
 $user = "toonlynx"; //username
-$pass = "fll1GtKsMBLIfaWekS4hBd1F"; //password
+$pass = ""; //password
 $link = $argv[1];
 $fa_mode = $argv[2];
 @$max_pages = $argv[3];
