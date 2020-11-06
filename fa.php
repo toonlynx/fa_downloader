@@ -19,10 +19,10 @@
  *
  */
 include "func.php";
-$user = "toonlynx"; //username
-$pass = "fll1GtKsMBLIfaWekS4hBd1F"; //password
-$link = $argv[1];
-$fa_mode = $argv[2];
+$user = "123"; //username
+$pass = "123"; //password
+@$link = strtolower($argv[1]);
+@$fa_mode = $argv[2];
 @$max_pages = $argv[3];
 $post = false;
 $timeout = 20;
@@ -30,20 +30,28 @@ $referer = "https://www.furaffinity.net/";
 $cookie_set = false;
 $mode = false;
 $i = 0;
+$ua = 'Mozilla/5.0 (X11; Linux x86_64; rv:82.0) Gecko/20100101 Firefox/82.0';
+if(is_numeric($fa_mode)) {
+	$max_pages = $fa_mode;
+}
+if(@strlen($link) < 2 || !isset($link)) {
+
+	print_msg("Usage: ".basename(__FILE__)." <link to profile> <mode> <max pages count(default 10, 0=10000)>", "green");
+	exit(1);
+}
 if(!isset($max_pages)) 
 {
-	$max_pages = 5;
+	$max_pages = 10;
 }
 elseif($max_pages == 0) 
 {
-	$max_pages = 100;
+	$max_pages = 10000;
 }
 $download_errors = $exists = $saved = 0;
 $url = "https://www.furaffinity.net/";
 $mode = false;
 $cookie_set = true;
 $out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode, true);
-$ua = 'Mozilla/5.0 (X11; Linux x86_64; rv:82.0) Gecko/20100101 Firefox/82.0';
 if(!is_file("cookie.txt") )
 // || strpos($out['html'], "Log In") !== FALSE)
 {
@@ -96,20 +104,33 @@ switch($fa_mode)
 			if(strpos($out['html'], "Log in") !== FALSE)
 			{
 				unlink("cookie.txt");
-				print_msg("Error! Please restart script to relogin!", "red");
+				print_msg("Error! Please restart script to relogin! Page dump saved.", "red");
+				file_put_contents("pagedump$i.txt", $out['html']);
 				break;
 			}
-			if(strpos($out['html'], "!--button class=\"button standard\" type=\"button\">Next</button-->") !== FALSE)
+			if(strpos($out['html'], "!--button class=\"button standard\" type=\"button\">Next</button-->") !== FALSE || strpos($out['html'], "There are no submissions to list") !== FALSE)
 			{
 				print_msg("Ok, $i pages given. Downloading.", "blue");	
 				break;
+			}
+			if (strpos($out['html'], "Recent Submissions") !== FALSE)
+			{
+				print_msg("Error! Index page detected! Page dump saved.", "red");
+				file_put_contents("pagedump$i.txt", $out['html']);
+				break;			
+			}
+			if (strpos($out['html'], "could not be found.") !== FALSE)
+			{
+				print_msg("Error! The username  could not be found. Page dump saved.", "red");
+				file_put_contents("pagedump$i.txt", $out['html']);
+				break;		
 			}
 			sleep(1);
 		}
 		$links = fa_parse($fa_out);
 		$fa_user = str_replace(array("/gallery/", "/", "https:","www.furaffinity.net"), "", $link);
 		//echo $fa_user;
-		if(!is_dir("out/$fa_user")) mkdir("out/$fa_user", 0777);
+		if(!is_dir("out/$fa_user") && @strlen($fa_user) > 3) mkdir("out/$fa_user", 0777);
 		//echo var_dump($links);
 		//die();
 		$cnt = count($links);
