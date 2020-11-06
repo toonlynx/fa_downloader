@@ -19,8 +19,8 @@
  *
  */
 include "func.php";
-$user = ""; //username
-$pass = ""; //password
+$user = "toonlynx"; //username
+$pass = "fll1GtKsMBLIfaWekS4hBd1F"; //password
 $link = $argv[1];
 $fa_mode = $argv[2];
 @$max_pages = $argv[3];
@@ -29,6 +29,7 @@ $timeout = 20;
 $referer = "https://www.furaffinity.net/";
 $cookie_set = false;
 $mode = false;
+$i = 0;
 if(!isset($max_pages)) 
 {
 	$max_pages = 5;
@@ -42,8 +43,9 @@ $url = "https://www.furaffinity.net/";
 $mode = false;
 $cookie_set = true;
 $out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode, true);
-$ua = 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)';
-if(!is_file("cookie.txt") || strpos($out['html'], "Log in") !== FALSE)
+$ua = 'Mozilla/5.0 (X11; Linux x86_64; rv:82.0) Gecko/20100101 Firefox/82.0';
+if(!is_file("cookie.txt") )
+// || strpos($out['html'], "Log In") !== FALSE)
 {
 	$url = "https://www.furaffinity.net/login/";
 	$post = "action=login&retard_protection=1&name=$user&pass=$pass&login=Login+to%C2%A0FurAffinity";
@@ -69,6 +71,7 @@ if(!is_file("cookie.txt") || strpos($out['html'], "Log in") !== FALSE)
 else 
 {
 	print_msg("Using old session...", "green");
+	file_put_contents("pagedump.txt", $out['html']);
 }
 if(!is_dir("out")) mkdir("out", 0777);
 $cookie_set = true;
@@ -96,17 +99,24 @@ switch($fa_mode)
 				print_msg("Error! Please restart script to relogin!", "red");
 				break;
 			}
-			if(strpos($out['html'], "There are no submissions to list") !== FALSE)
+			if(strpos($out['html'], "!--button class=\"button standard\" type=\"button\">Next</button-->") !== FALSE)
 			{
 				print_msg("Ok, $i pages given. Downloading.", "blue");	
 				break;
 			}
+			sleep(1);
 		}
 		$links = fa_parse($fa_out);
-		$fa_user = str_replace(array("http://www.furaffinity.net/gallery/", "/", "https://www.furaffinity.net/gallery/"), "", $link);
+		$fa_user = str_replace(array("/gallery/", "/", "https:","www.furaffinity.net"), "", $link);
+		//echo $fa_user;
 		if(!is_dir("out/$fa_user")) mkdir("out/$fa_user", 0777);
+		//echo var_dump($links);
+		//die();
+		$cnt = count($links);
+		$i = 0;
 		foreach($links as $link)
 		{
+			$i++;
 			$url = "https://www.furaffinity.net/view/$link/";
 			$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
 			$img = fa_parse_page($out['html']);
@@ -119,18 +129,18 @@ switch($fa_mode)
 				$out = curl_run($post, $url, $ua, $timeout, $referer, $cookie_set, $mode);
 				if($out['error'] != "0")
 				{
-					print_msg("Error image downloading!", "red");
+					print_msg("Error image $file_name downloading! ($i/$cnt)", "red");
 					$download_errors++;
 					continue;
 				}
 				
 				file_put_contents("out/$fa_user/$file_name", $out['html']);
-				print_msg("Image $file_name saved!", "green");
+				print_msg("Image $file_name saved! ($i/$cnt)", "green");
 				$saved++;
 			}
 			else 
 			{
-				print_msg("Image $file_name exists!", "blue");
+				print_msg("Image $file_name exists! ($i/$cnt)", "blue");
 				$exists++;
 			}
 			
@@ -146,16 +156,16 @@ print_msg("ERRORS: $download_errors", "green");
 print_msg("TOTAL: $total", "green");
 function fa_parse($html) 
 {
-	preg_match_all("/\<a\ href\=\"\/view\/([0-9]{4,10})\/\"/", $html, $links);
+	preg_match_all("#\<u\>\<a href\=\"\/view\/([0-9]{4,10})/#", $html, $links);
 	return $links[1];
 }
-
+// \<u\>\<a href\=\"\/view\/([0-9]{4,10})/\"
 function fa_parse_page($html)
 {
 	$out = array();
 	preg_match("/change\ the\ View\"\ alt\=\"(.*?)\"/", $html, $out['name']);
 	@$out['name'] = $out['name'][1];
-	preg_match("/href=\"\/\/(.*?)\"/", $html, $out['link']);
+	preg_match("#\<div class\=\"download\"\>\<a href\=\"\/\/(.*?)\"#", $html, $out['link']);
 	$out['link'] = $out['link'][1];
 	return $out;	
 }
